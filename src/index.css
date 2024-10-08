@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-100;
+}
+
+.card-container {
+  transform-style: preserve-3d;
+  transform: perspective(1000px);
+}
+
+.card-container img {
+  transform: translateZ(50px);
+}
