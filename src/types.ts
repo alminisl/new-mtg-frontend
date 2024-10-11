@@ -6,6 +6,8 @@ export interface Card {
   price?: number;
   oracleText: string;
   rulings?: string[];
+  count?: number; // Add this line
+  manaCost?: string; // Add this line
 }
 
 export interface Deck {

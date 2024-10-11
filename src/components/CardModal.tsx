@@ -33,6 +33,8 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
       card.style.transform = string;
     };
 
+    // TODO: ADD HERE RULINGS AND PRICE FETCHING FOR CARDS
+
     const handleMouseOut = () => {
       card.style.transform = `
         perspective(500px)
@@ -77,34 +79,36 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
             </div>
           </div>
           <div className="w-full md:w-1/2 p-6 overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-4">{card.name}</h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">
+              {card.name}
+            </h2>
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-500">Set</h3>
-                <p className="text-gray-500">{card.set}</p>
+                <h3 className="text-lg font-semibold text-gray-900">Set</h3>
+                <p className="text-gray-900">{card.set}</p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-500">
+                <h3 className="text-lg font-semibold text-gray-900">
                   Price (Cardmarket)
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-gray-900">
                   {card.price ? `€${card.price}` : "Price not available"}
                 </p>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-500">
+                <h3 className="text-lg font-semibold text-gray-900">
                   Oracle Text
                 </h3>
-                <p className="text-gray-500 whitespace-pre-wrap">
+                <p className="text-gray-900 whitespace-pre-wrap">
                   {card.oracleText}
                 </p>
               </div>
               {card.rulings && card.rulings.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-500">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     Rulings
                   </h3>
-                  <ul className="list-disc list-inside text-gray-500">
+                  <ul className="list-disc list-inside text-gray-900">
                     {card.rulings.map((ruling, index) => (
                       <li key={index}>{ruling}</li>
                     ))}

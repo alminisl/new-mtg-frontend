@@ -4,6 +4,8 @@ import { ChevronLeft } from "lucide-react";
 import CardGrid from "./CardGrid";
 import { Card, Deck } from "../types";
 import Deckbox from "./Deckbox";
+import axios from "axios";
+import AddDeckModal from "./AddDeckModal";
 
 const DeckList: React.FC = () => {
   const [collection, setCollection] = useState(null);
@@ -15,48 +17,67 @@ const DeckList: React.FC = () => {
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
 
+  const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+
   useEffect(() => {
     const fetchCards = async () => {
-      const newCards = await Promise.all(
-        Array(10)
-          .fill(null)
-          .map(async () => {
-            const response = await fetch(
-              "https://api.scryfall.com/cards/random"
-            );
-            const data = await response.json();
-            return {
-              id: data.id,
-              name: data.name,
-              imageUrl: data.image_uris?.normal || "",
-              set: data.set_name,
-              price: data.prices?.eur ? parseFloat(data.prices.eur) : undefined,
-              oracleText: data.oracle_text || "",
-              rulings: data.rulings_uri
-                ? await fetchRulings(data.rulings_uri)
-                : [],
-            };
-          })
-      );
-      setCards(newCards);
+      const userId = localStorage.getItem("id");
+      if (!userId) {
+        console.error("User ID not found in cookies.");
+        return;
+      }
 
-      // Distribute cards randomly among decks
-      const updatedDecks = decks.map((deck) => ({
-        ...deck,
-        cards: newCards.filter(() => Math.random() > 0.5),
-      }));
-      setDecks(updatedDecks);
+      try {
+        const response = await axios.get(
+          `http://localhost:3000/collections/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        const data = response.data;
+
+        const newCards = data.cards.map((card: any) => ({
+          id: card.id,
+          name: card.name,
+          imageUrl: card.imageUrl,
+          set: card.set,
+          price: card.price,
+          oracleText: card.oracleId,
+          rulings: card.rulings,
+          count: card.count,
+        }));
+        setCards(newCards);
+        // Update deck here
+        // setDecks(updatedDecks);
+      } catch (error) {
+        console.error("Error fetching card collection:", error);
+      }
     };
 
     fetchCards();
   }, []);
 
-  const fetchRulings = async (rulingsUri: string) => {
-    const response = await fetch(rulingsUri);
-    const data = await response.json();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return data.data.map((ruling: any) => ruling.comment);
+  const handleDeckAdded = () => {
+    const newDeck: Deck = {
+      id: (decks.length + 1).toString(),
+      name: `New Deck ${decks.length + 1}`,
+      cards: [],
+    };
+    setDecks([...decks, newDeck]);
   };
+
+  // const fetchRulings = async (rulingsUri: string) => {
+  //   try {
+  //     const response = await axios.get(rulingsUri);
+  //     const data = response.data;
+  //     return data.data.map((ruling: any) => ruling.comment);
+  //   } catch (error) {
+  //     console.error("Error fetching rulings:", error);
+  //     return [];
+  //   }
+  // };
 
   useEffect(() => {
     const fetchCollection = async () => {
@@ -67,7 +88,7 @@ const DeckList: React.FC = () => {
       }
 
       try {
-        const response = await fetch(
+        const response = await axios.get(
           `http://localhost:3000/collections/${userId}`,
           {
             headers: {
@@ -75,10 +96,7 @@ const DeckList: React.FC = () => {
             },
           }
         );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
+        const data = response.data;
         setCollection(data);
       } catch (error) {
         console.error("Error fetching collection:", error);
@@ -88,19 +106,15 @@ const DeckList: React.FC = () => {
     fetchCollection();
   }, []);
 
+  const handleAddDeckClick = () => {
+    setIsAddDeckModalOpen(true);
+  };
+
   const handleSelectDeck = (deckId: string) => {
     setSelectedDeck(deckId);
     // Here you would typically fetch cards for the selected deck
     // For now, we'll just log the selected deck ID
     console.log(`Selected deck: ${deckId}`);
-  };
-
-  const handleAddDeck = () => {
-    const newDeck: Deck = {
-      id: (decks.length + 1).toString(),
-      name: `New Deck ${decks.length + 1}`,
-    };
-    setDecks([...decks, newDeck]);
   };
 
   return (
@@ -121,7 +135,7 @@ const DeckList: React.FC = () => {
           <div className="min-h-screen ">
             <Deckbox
               decks={decks}
-              onAddDeck={handleAddDeck}
+              onAddDeck={handleAddDeckClick}
               onSelectDeck={handleSelectDeck}
               onOpenChange={setIsDeckboxOpen}
             />
@@ -144,6 +158,11 @@ const DeckList: React.FC = () => {
       ) : (
         <p>Loading...</p>
       )}
+      <AddDeckModal
+        isOpen={isAddDeckModalOpen}
+        onClose={() => setIsAddDeckModalOpen(false)}
+        onDeckAdded={handleDeckAdded}
+      />
     </div>
   );
 };
