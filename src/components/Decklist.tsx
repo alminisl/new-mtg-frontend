@@ -38,6 +38,8 @@ const DeckList: React.FC = () => {
         const decks = data.map((deck: any) => ({
           id: deck.id,
           name: deck.name,
+          price: deck.price,
+          image: deck.image,
         }));
         setDecks(decks);
       } catch (error) {
@@ -126,10 +128,47 @@ const DeckList: React.FC = () => {
     setIsAddDeckModalOpen(true);
   };
 
-  const handleSelectDeck = (deckId: string) => {
+  const handleSelectDeck = async (deckId: string) => {
     setSelectedDeck(deckId);
     // Here you would typically fetch cards for the selected deck
     // For now, we'll just log the selected deck ID
+    const userId = localStorage.getItem("id");
+    const response = await axios.get(
+      `http://localhost:3000/cardsInCollection/${userId}/${deckId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    // const updateCardList = async () => {
+    //   const userId = localStorage.getItem("id");
+    //   const response = await axios.get(
+    //     `http://localhost:3000/collections/${userId}`,
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+    //       },
+    //     }
+    //   );
+    //   setCards(response.data.cards);
+    // };
+
+    const data = response.data;
+    console.log(data);
+
+    const newCards = data.cardsInCollections.map((collectionCard: any) => ({
+      id: collectionCard.card.id,
+      name: collectionCard.card.name,
+      imageUrl: collectionCard.card.image_uris?.[0]?.png ?? "N/A", // Updated line
+      set: collectionCard.card.set,
+      price: collectionCard.card.prices?.[0]?.eur ?? "N/A", // Updated line
+      oracleText: collectionCard.card.oracle_text,
+      rulings: collectionCard.card.rulings_uri,
+      count: collectionCard.count,
+    }));
+    setCards(newCards);
     console.log(`Selected deck: ${deckId}`);
   };
 
