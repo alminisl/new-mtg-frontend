@@ -10,10 +10,7 @@ import AddDeckModal from "./AddDeckModal";
 const DeckList: React.FC = () => {
   const [collection, setCollection] = useState(null);
   const [cards, setCards] = useState<Card[]>([]);
-  const [decks, setDecks] = useState<Deck[]>([
-    { id: "1", name: "My First Deck", cards: [] },
-    { id: "2", name: "Blue Control", cards: [] },
-  ]);
+  const [decks, setDecks] = useState<Deck[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
 
@@ -36,24 +33,43 @@ const DeckList: React.FC = () => {
             },
           }
         );
-        const data = response.data;
 
-        const newCards = data.cards.map((card: any) => ({
-          id: card.id,
-          name: card.name,
-          imageUrl: card.imageUrl,
-          set: card.set,
-          price: card.price,
-          oracleText: card.oracleId,
-          rulings: card.rulings,
-          count: card.count,
+        const data = response.data;
+        const decks = data.map((deck: any) => ({
+          id: deck.id,
+          name: deck.name,
         }));
-        setCards(newCards);
-        // Update deck here
-        // setDecks(updatedDecks);
+        setDecks(decks);
       } catch (error) {
         console.error("Error fetching card collection:", error);
       }
+      // try {
+      //   const response = await axios.get(
+      //     `http://localhost:3000/collections/${userId}`,
+      //     {
+      //       headers: {
+      //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+      //       },
+      //     }
+      //   );
+      //   const data = response.data;
+
+      //   const newCards = data.cards.map((card: any) => ({
+      //     id: card.id,
+      //     name: card.name,
+      //     imageUrl: card.imageUrl,
+      //     set: card.set,
+      //     price: card.price,
+      //     oracleText: card.oracleId,
+      //     rulings: card.rulings,
+      //     count: card.count,
+      //   }));
+      //   setCards(newCards);
+      //   // Update deck here
+      //   // setDecks(updatedDecks);
+      // } catch (error) {
+      //   console.error("Error fetching card collection:", error);
+      // }
     };
 
     fetchCards();

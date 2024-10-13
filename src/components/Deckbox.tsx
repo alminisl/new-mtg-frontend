@@ -39,9 +39,10 @@ const Deckbox: React.FC<DeckboxProps> = ({
   };
 
   const calculateDeckPrice = (deck: Deck) => {
-    return deck.cards
-      .reduce((total, card) => total + (card.price || 0), 0)
-      .toFixed(2);
+    // return deck.cards
+    //   .reduce((total, card) => total + (card.price || 0), 0)
+    //   .toFixed(2);
+    return 0;
   };
 
   return (
