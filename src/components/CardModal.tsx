@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { X } from "lucide-react";
 import { Card } from "../types";
+import axios from "axios";
 
 interface CardModalProps {
   card: Card;
@@ -51,6 +52,28 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
       card.removeEventListener("mouseout", handleMouseOut);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchAndSetRulings = async () => {
+      if (card.rulings_uri) {
+        const rulings = await fetchRulings(card.rulings_uri);
+        card.rulings = rulings;
+      }
+    };
+
+    fetchAndSetRulings();
+  }, [card]);
+
+  const fetchRulings = async (rulingsUri: string) => {
+    try {
+      const response = await axios.get(rulingsUri);
+      const data = response.data;
+      return data.data.map((ruling: any) => ruling.comment);
+    } catch (error) {
+      console.error("Error fetching rulings:", error);
+      return [];
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

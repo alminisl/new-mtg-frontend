@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "../types";
 import CardModal from "./CardModal";
 import Taskbar from "./Taskbar";
@@ -39,6 +39,12 @@ const CardGrid: React.FC<CardGridProps> = ({ cards }) => {
   const handleMouseLeave = () => {
     setHoveredCard(null);
   };
+
+  useEffect(() => {
+    cards.forEach((card) => {
+      console.log(card.price);
+    });
+  }, [cards]);
 
   const renderManaSymbols = (manaCost: string) => {
     return manaCost

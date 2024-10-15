@@ -1,22 +1,25 @@
 import React, { useState } from "react";
 import { ChevronRight, Pin, PinOff, Plus } from "lucide-react";
 import { Deck } from "../types";
+import EditDeckModal from "./EditDeckModal";
+import { useAppContext } from "../context/AppContext";
 
 interface DeckboxProps {
-  decks: Deck[];
   onAddDeck: () => void;
   onSelectDeck: (deckId: string) => void;
   onOpenChange: (isOpen: boolean) => void;
 }
 
 const Deckbox: React.FC<DeckboxProps> = ({
-  decks,
   onAddDeck,
   onSelectDeck,
   onOpenChange,
 }) => {
+  const { decks, updateDeck, removeDeck } = useAppContext();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+  const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
 
   const togglePin = () => {
     setIsPinned(!isPinned);
@@ -92,6 +95,15 @@ const Deckbox: React.FC<DeckboxProps> = ({
         <div className="absolute top-1/2 right-0 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200">
           <ChevronRight size={24} />
         </div>
+      )}
+      {editingDeck && (
+        <EditDeckModal
+          deck={editingDeck}
+          isOpen={!!editingDeck}
+          onClose={() => setEditingDeck(null)}
+          onUpdateDeck={updateDeck}
+          onRemoveDeck={removeDeck}
+        />
       )}
     </div>
   );

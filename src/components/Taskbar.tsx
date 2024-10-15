@@ -50,12 +50,16 @@ const Taskbar: React.FC = () => {
         cardName: query,
         collectionId: "clugtv5fb0005ucl8dw60put6",
       };
-      const response = await axios.post("http://localhost:3000/addCard", data, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:3000//addCard",
+        data,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
       console.log("Card added to collection successfully:", response.data);
     } catch (error) {

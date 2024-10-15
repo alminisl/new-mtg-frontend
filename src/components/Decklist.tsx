@@ -47,7 +47,7 @@ const DeckList: React.FC = () => {
       }
       // try {
       //   const response = await axios.get(
-      //     `http://localhost:3000/collections/${userId}`,
+      //     `http://localhost:3000//collections/${userId}`,
       //     {
       //       headers: {
       //         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -145,7 +145,7 @@ const DeckList: React.FC = () => {
     // const updateCardList = async () => {
     //   const userId = localStorage.getItem("id");
     //   const response = await axios.get(
-    //     `http://localhost:3000/collections/${userId}`,
+    //     `http://localhost:3000//collections/${userId}`,
     //     {
     //       headers: {
     //         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -165,7 +165,7 @@ const DeckList: React.FC = () => {
       set: collectionCard.card.set,
       price: collectionCard.card.prices?.[0]?.eur ?? "N/A", // Updated line
       oracleText: collectionCard.card.oracle_text,
-      rulings: collectionCard.card.rulings_uri,
+      rulings_uri: collectionCard.card.rulings_uri,
       count: collectionCard.count,
     }));
     setCards(newCards);

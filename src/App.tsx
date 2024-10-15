@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Header from "./components/Header";
 import ImageCarousel from "./components/ImageCarousel";
 import CardRow from "./components/CardRow";
 import DeckList from "./components/Decklist";
 import PrivateRoute from "./components/PrivateRoute";
+import { useAppContext } from "./context/AppContext";
 
 const images = [
   "https://images.ctfassets.net/s5n2t79q9icq/2Jcnqi6tnVO40eKc8XvFtT/b2d7caccf928290b96106117a1cb00bd/1200x630_Meta_EN.jpg",
@@ -14,10 +15,14 @@ const images = [
 ];
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
-  const [token, setToken] = useState("");
-  const [id, setId] = useState("");
+  const {
+    isAuthenticated,
+    setIsAuthenticated,
+    username,
+    setUsername,
+    setToken,
+    setUserId,
+  } = useAppContext();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -29,7 +34,7 @@ function App() {
       setIsAuthenticated(true);
       setUsername(usernameParam);
       setToken(tokenParam);
-      setId(idParam!);
+      setUserId(idParam!);
       localStorage.setItem("token", tokenParam);
       localStorage.setItem("username", usernameParam);
       localStorage.setItem("id", idParam!);
@@ -47,7 +52,7 @@ function App() {
   }, []);
 
   const handleSignIn = () => {
-    window.location.href = "http://localhost:3000/login";
+    window.location.href = "http://localhost:3000";
   };
 
   const handleSignOut = () => {

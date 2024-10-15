@@ -7,6 +7,7 @@ export interface Card {
   oracleText: string;
   rulings?: string[];
   count?: number; // Add this line
+  rulings_uri?: string; // Add this line
   manaCost?: string; // Add this line
 }
 
