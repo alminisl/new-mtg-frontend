@@ -8,7 +8,7 @@ const cards = [
 
 const CardRow: React.FC = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-8">
       {cards.map((card) => (
         <a
           key={card.id}

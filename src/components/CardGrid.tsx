@@ -74,7 +74,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards }) => {
           {cards.map((card) => (
             <div
               key={card.id}
-              className="border-b last:border-b-0 p-4 hover:bg-gray-100 cursor-pointer"
+              className="border-b last:border-b-0 p-4 hover:bg-gray-100 cursor-pointer mb-4"
               onClick={() => handleCardClick(card)}
             >
               <div className="flex justify-between items-center">
@@ -101,7 +101,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards }) => {
           {cards.map((card) => (
             <div
               key={card.id}
-              className="relative group flex justify-center cursor-pointer"
+              className="relative group flex justify-center cursor-pointer mb-4"
               onClick={() => handleCardClick(card)}
             >
               <div className="w-4/5 relative">
