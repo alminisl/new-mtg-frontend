@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Plus } from "lucide-react";
 import axios from "axios";
+import { useAppContext } from "../context/AppContext";
 
 const Taskbar: React.FC = () => {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<number | null>(null);
+
+  const { selectedCollectionId } = useAppContext();
 
   useEffect(() => {
     if (query.length > 1) {
@@ -48,18 +51,14 @@ const Taskbar: React.FC = () => {
     try {
       const data = {
         cardName: query,
-        collectionId: "clugtv5fb0005ucl8dw60put6",
+        collectionId: selectedCollectionId,
       };
-      const response = await axios.post(
-        "http://localhost:3000//addCard",
-        data,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await axios.post("http://localhost:3000/addCard", data, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       console.log("Card added to collection successfully:", response.data);
     } catch (error) {

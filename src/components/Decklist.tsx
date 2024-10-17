@@ -6,13 +6,14 @@ import { Card, Deck } from "../types";
 import Deckbox from "./Deckbox";
 import axios from "axios";
 import AddDeckModal from "./AddDeckModal";
+import { useAppContext } from "../context/AppContext";
 
 const DeckList: React.FC = () => {
   const [collection, setCollection] = useState(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
+  const { setSelectedCollectionId } = useAppContext();
 
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
 
@@ -129,7 +130,7 @@ const DeckList: React.FC = () => {
   };
 
   const handleSelectDeck = async (deckId: string) => {
-    setSelectedDeck(deckId);
+    setSelectedCollectionId(deckId);
     // Here you would typically fetch cards for the selected deck
     // For now, we'll just log the selected deck ID
     const userId = localStorage.getItem("id");

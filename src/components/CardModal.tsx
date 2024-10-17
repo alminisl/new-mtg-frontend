@@ -1,15 +1,27 @@
-import React, { useRef, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useRef, useEffect, useState } from "react";
+import { ChevronDown, X } from "lucide-react";
 import { Card } from "../types";
 import axios from "axios";
+import { useAppContext } from "../context/AppContext";
 
 interface CardModalProps {
   card: Card;
   onClose: () => void;
 }
-
+interface CardPrint {
+  id: string;
+  set_name: string;
+  collector_number: string;
+  image_uris: {
+    normal: string;
+  };
+}
 const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [prints, setPrints] = useState<CardPrint[]>([]);
+  const [selectedPrint, setSelectedPrint] = useState<CardPrint | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { cards, setCards, selectedCollectionId } = useAppContext();
 
   useEffect(() => {
     const card = cardRef.current;
@@ -54,6 +66,26 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   }, []);
 
   useEffect(() => {
+    const fetchPrints = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.scryfall.com/cards/search?q=!"${card.name}" unique:prints`
+        );
+        setPrints(response.data.data);
+        setSelectedPrint(
+          response.data.data.find(
+            (print: CardPrint) => print.set_name === card.set
+          ) || response.data.data[0]
+        );
+      } catch (error) {
+        console.error("Error fetching card prints:", error);
+      }
+    };
+
+    fetchPrints();
+  }, [card.name, card.set]);
+
+  useEffect(() => {
     const fetchAndSetRulings = async () => {
       if (card.rulings_uri) {
         const rulings = await fetchRulings(card.rulings_uri);
@@ -72,6 +104,50 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
     } catch (error) {
       console.error("Error fetching rulings:", error);
       return [];
+    }
+  };
+
+  const handlePrintChange = async (print: CardPrint) => {
+    setSelectedPrint(print);
+    setIsDropdownOpen(false);
+
+    // Update the card in the global state
+    const updatedCards = cards.map((c) =>
+      c.id === card.id
+        ? { ...c, set: print.set_name, imageUrl: print.image_uris.normal }
+        : c
+    );
+    setCards(updatedCards);
+
+    // Make API request to update the card in the backend
+    try {
+      const response = await fetch("http://localhost:3000/updateCardPrint", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          cardId: card.id,
+          newPrint: print,
+          collectionId: selectedCollectionId, // Assuming you have this value available
+        }),
+      });
+
+      if (!response.ok) {
+        console.log(await response.json());
+        throw new Error("Failed to update card print");
+      }
+
+      const updatedCard = await response.json();
+
+      // Update the card in the global state with the response from the backend
+      const finalUpdatedCards = cards.map((c) =>
+        c.id === card.id ? updatedCard : c
+      );
+      setCards(finalUpdatedCards);
+    } catch (error) {
+      console.error("Error updating card print:", error);
     }
   };
 
@@ -108,7 +184,26 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Set</h3>
-                <p className="text-gray-900">{card.set}</p>
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full p-2 bg-white border border-gray-300 rounded-md shadow-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                >
+                  {selectedPrint?.set_name || card.set}
+                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
+                </button>
+                {isDropdownOpen && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                    {prints.map((print) => (
+                      <li
+                        key={print.id}
+                        className="p-2 hover:bg-gray-100 cursor-pointer text-gray-900"
+                        onClick={() => handlePrintChange(print)}
+                      >
+                        {print.set_name} (#{print.collector_number})
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
