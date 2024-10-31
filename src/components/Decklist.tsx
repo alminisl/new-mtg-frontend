@@ -129,6 +129,10 @@ const DeckList: React.FC = () => {
     setIsAddDeckModalOpen(true);
   };
 
+  const handleRemoveCard = (cardId: string) => {
+    setCards((cards) => cards.filter((card) => card.id !== cardId));
+  };
+
   const handleSelectDeck = async (deckId: string) => {
     setSelectedCollectionId(deckId);
     // Here you would typically fetch cards for the selected deck
@@ -205,7 +209,7 @@ const DeckList: React.FC = () => {
                   Magic: The Gathering Cards
                 </h1>
                 <div className="max-w-6xl mx-auto">
-                  <CardGrid cards={cards} />
+                  <CardGrid cards={cards} onRemoveCard={handleRemoveCard} />
                 </div>
               </div>
             </div>
