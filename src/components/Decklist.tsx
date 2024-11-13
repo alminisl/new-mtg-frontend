@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import CardGrid from "./CardGrid";
 import { Card, Deck } from "../types";
@@ -9,13 +9,21 @@ import AddDeckModal from "./AddDeckModal";
 import { useAppContext } from "../context/AppContext";
 
 const DeckList: React.FC = () => {
+  const { deckId } = useParams();
   const [collection, setCollection] = useState(null);
   const [cards, setCards] = useState<Card[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
   const { setSelectedCollectionId } = useAppContext();
+  const navigate = useNavigate();
 
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (deckId) {
+      handleSelectDeck(deckId);
+    }
+  }, [deckId]);
 
   useEffect(() => {
     const fetchCards = async () => {

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { ChevronRight, Pin, PinOff, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Deck } from "../types";
 import EditDeckModal from "./EditDeckModal";
 import { useAppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
 
 interface DeckboxProps {
   onAddDeck: () => void;
@@ -10,71 +11,31 @@ interface DeckboxProps {
   onOpenChange: (isOpen: boolean) => void;
 }
 
-const Deckbox: React.FC<DeckboxProps> = ({
-  onAddDeck,
-  onSelectDeck,
-  onOpenChange,
-}) => {
+const Deckbox: React.FC<DeckboxProps> = ({ onAddDeck, onSelectDeck }) => {
   const { decks, updateDeck, removeDeck } = useAppContext();
-
-  const [isOpen, setIsOpen] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const navigate = useNavigate();
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
 
-  const togglePin = () => {
-    setIsPinned(!isPinned);
-    setIsOpen(!isPinned);
-    onOpenChange(!isPinned);
-  };
-
-  const handleMouseEnter = () => {
-    if (!isPinned) {
-      setIsOpen(true);
-      onOpenChange(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isPinned) {
-      setIsOpen(false);
-      onOpenChange(false);
-    }
-  };
-
   const calculateDeckPrice = (deck: Deck) => {
-    // return deck.cards
-    //   .reduce((total, card) => total + (card.price || 0), 0)
-    //   .toFixed(2);
     return 0;
   };
 
+  const handleDeckClick = (deckId: string) => {
+    onSelectDeck(deckId);
+    navigate(`/decklist/${deckId}`);
+  };
+
   return (
-    <div
-      className={`fixed left-0 top-[25vh] h-[50vh] bg-gray-800 shadow-lg transition-all duration-300 z-10 rounded-r-lg overflow-hidden ${
-        isOpen || isPinned ? "w-64" : "w-8"
-      }`}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div
-        className={`h-full flex flex-col ${
-          isOpen || isPinned ? "opacity-100" : "opacity-0"
-        } transition-opacity duration-300`}
-      >
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+    <div className="fixed left-0 top-[25vh] h-[50vh] w-64 bg-gray-800 shadow-lg z-10 rounded-r-lg overflow-hidden">
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-gray-700">
           <h2 className="text-xl font-bold text-white">Deckbox</h2>
-          <button
-            onClick={togglePin}
-            className="text-gray-400 hover:text-white"
-          >
-            {isPinned ? <PinOff size={20} /> : <Pin size={20} />}
-          </button>
         </div>
         <div className="flex-grow overflow-y-auto">
           {decks.map((deck) => (
             <button
               key={deck.id}
-              onClick={() => onSelectDeck(deck.id)}
+              onClick={() => handleDeckClick(deck.id)}
               className="w-full text-left p-3 text-gray-300 hover:bg-gray-700 transition-colors duration-200 flex justify-between items-center"
             >
               <span>{deck.name}</span>
@@ -91,11 +52,6 @@ const Deckbox: React.FC<DeckboxProps> = ({
           <Plus size={20} className="mr-2" /> Add New Deck
         </button>
       </div>
-      {!isOpen && !isPinned && (
-        <div className="absolute top-1/2 right-0 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200">
-          <ChevronRight size={24} />
-        </div>
-      )}
       {editingDeck && (
         <EditDeckModal
           deck={editingDeck}

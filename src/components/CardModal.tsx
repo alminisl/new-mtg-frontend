@@ -14,7 +14,12 @@ interface CardPrint {
   collector_number: string;
   image_uris: {
     normal: string;
+    small: string;
   };
+}
+interface CardPrices {
+  eur: string | number;
+  eur_foil: string | number;
 }
 const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -22,6 +27,10 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   const [selectedPrint, setSelectedPrint] = useState<CardPrint | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { cards, setCards, selectedCollectionId } = useAppContext();
+  const [prices, setPrices] = useState<CardPrices>({
+    eur: "N/A",
+    eur_foil: "N/A",
+  });
 
   useEffect(() => {
     const card = cardRef.current;
@@ -96,6 +105,26 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
     fetchAndSetRulings();
   }, [card]);
 
+  const fetchPrices = async (cardId: string) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/card/${cardId}/prices`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setPrices(response.data);
+    } catch (error) {
+      console.error("Error fetching card prices:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrices(card.id);
+  }, [card.id]);
+
   const fetchRulings = async (rulingsUri: string) => {
     try {
       const response = await axios.get(rulingsUri);
@@ -111,16 +140,8 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
     setSelectedPrint(print);
     setIsDropdownOpen(false);
 
-    // Update the card in the global state
-    const updatedCards = cards.map((c) =>
-      c.id === card.id
-        ? { ...c, set: print.set_name, imageUrl: print.image_uris.normal }
-        : c
-    );
-    setCards(updatedCards);
-
-    // Make API request to update the card in the backend
     try {
+      // First update the card print
       const response = await fetch("http://localhost:3000/updateCardPrint", {
         method: "POST",
         headers: {
@@ -130,22 +151,24 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
         body: JSON.stringify({
           cardId: card.id,
           newPrint: print,
-          collectionId: selectedCollectionId, // Assuming you have this value available
+          collectionId: selectedCollectionId,
         }),
       });
 
       if (!response.ok) {
-        console.log(await response.json());
         throw new Error("Failed to update card print");
       }
 
       const updatedCard = await response.json();
 
-      // Update the card in the global state with the response from the backend
+      // Update the card in the global state
       const finalUpdatedCards = cards.map((c) =>
         c.id === card.id ? updatedCard : c
       );
       setCards(finalUpdatedCards);
+
+      // Fetch new prices for the updated print
+      await fetchPrices(updatedCard.id);
     } catch (error) {
       console.error("Error updating card print:", error);
     }
@@ -171,7 +194,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
               className="card-container w-full h-full flex items-center justify-center transition-transform duration-200 ease-out"
             >
               <img
-                src={card.imageUrl}
+                src={selectedPrint?.image_uris.normal || card.imageUrl}
                 alt={card.name}
                 className="max-w-[90%] max-h-[50vh] object-contain rounded-lg shadow-lg"
               />
@@ -186,9 +209,18 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                 <h3 className="text-lg font-semibold text-gray-900">Set</h3>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full p-2 bg-white border border-gray-300 rounded-md shadow-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                  className="w-full p-2 bg-white border border-gray-300 rounded-md shadow-sm text-left focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 relative"
                 >
-                  {selectedPrint?.set_name || card.set}
+                  <div className="flex items-center gap-2">
+                    {selectedPrint && (
+                      <img
+                        src={selectedPrint.image_uris.small}
+                        alt={selectedPrint.set_name}
+                        className="w-8 h-8 object-contain"
+                      />
+                    )}
+                    <span>{selectedPrint?.set_name || card.set}</span>
+                  </div>
                   <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2" />
                 </button>
                 {isDropdownOpen && (
@@ -199,7 +231,16 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                         className="p-2 hover:bg-gray-100 cursor-pointer text-gray-900"
                         onClick={() => handlePrintChange(print)}
                       >
-                        {print.set_name} (#{print.collector_number})
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={print.image_uris.small}
+                            alt={print.set_name}
+                            className="w-8 h-8 object-contain"
+                          />
+                          <span>
+                            {print.set_name} (#{print.collector_number})
+                          </span>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -209,9 +250,24 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Price (Cardmarket)
                 </h3>
-                <p className="text-gray-900">
-                  {card.price ? `€${card.price}` : "Price not available"}
-                </p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">Regular:</span>
+                    <p className="text-gray-900">
+                      {prices.eur === "N/A"
+                        ? "−"
+                        : `€${Number(prices.eur).toFixed(2)}`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-600">Foil:</span>
+                    <p className="text-gray-900">
+                      {prices.eur_foil === "N/A"
+                        ? "−"
+                        : `€${Number(prices.eur_foil).toFixed(2)}`}
+                    </p>
+                  </div>
+                </div>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">

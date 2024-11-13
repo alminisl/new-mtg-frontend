@@ -69,7 +69,7 @@ function App() {
         <div className="container mx-auto px-4">
           <Header
             isAuthenticated={isAuthenticated}
-            username={username}
+            username={username || ""}
             onSignIn={handleSignIn}
             onSignOut={handleSignOut}
           />
@@ -91,6 +91,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/decklist/:deckId" element={<DeckList />} />
           </Routes>
         </div>
       </div>
