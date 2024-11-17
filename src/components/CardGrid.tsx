@@ -6,6 +6,7 @@ import { Grid, List, X } from "lucide-react";
 import ManaSymbol from "./ManaSymbol";
 import { deleteCard } from "../service/service";
 import { useAppContext } from "../context/AppContext";
+import cardBack from "../assets/cardback.jpeg";
 
 interface CardGridProps {
   cards: Card[];
@@ -59,11 +60,21 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
   };
 
   useEffect(() => {
+    console.group("Card Images in Grid");
     cards.forEach((card) => {
-      console.log(card.price);
-      console.log("Card Image", card.imageUrl);
+      console.log("Card Name:", card.name);
+      console.log("Image URL:", card.imageUrl);
+      console.log("Raw Card Data:", card);
     });
+    console.groupEnd();
   }, [cards]);
+
+  // useEffect(() => {
+  //   cards.forEach((card) => {
+  //     console.log(card.price);
+  //     console.log("Card Image", card.imageUrl);
+  //   });
+  // }, [cards]);
 
   const renderManaSymbols = (manaCost: string) => {
     return manaCost
@@ -132,7 +143,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
               >
                 <div className="w-4/5 relative">
                   <img
-                    src={card.imageUrl}
+                    src={card.imageUrl === "N/A" ? cardBack : card.imageUrl}
                     alt={card.name}
                     className="w-full h-auto rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                   />

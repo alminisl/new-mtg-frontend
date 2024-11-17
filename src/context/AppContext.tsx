@@ -26,6 +26,7 @@ interface AppState {
   fetchCardsForDeck: (deckId: string) => Promise<void>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   setToken: (token: string) => void;
+  updateCardInCollection: (cardId: string, count: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -93,6 +94,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       console.error("Error fetching decks:", error);
     }
+  };
+
+  const updateCardInCollection = async (cardId: string, count: number) => {
+    setCards((prevCards) =>
+      prevCards.map((card) =>
+        card.id === cardId ? { ...card, count: count } : card
+      )
+    );
+    await fetchCardsForDeck(selectedCollectionId!);
   };
 
   const fetchCardsForDeck = async (deckId: string) => {
@@ -175,6 +185,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsAuthenticated,
         setToken,
         token,
+        updateCardInCollection,
       }}
     >
       {children}

@@ -26,7 +26,8 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   const [prints, setPrints] = useState<CardPrint[]>([]);
   const [selectedPrint, setSelectedPrint] = useState<CardPrint | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { cards, setCards, selectedCollectionId } = useAppContext();
+  const { cards, setCards, selectedCollectionId, updateCardInCollection } =
+    useAppContext();
   const [prices, setPrices] = useState<CardPrices>({
     eur: "N/A",
     eur_foil: "N/A",
@@ -167,6 +168,9 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
       );
       setCards(finalUpdatedCards);
 
+      // Use the context function to update cards everywhere
+      await updateCardInCollection(card.id, updatedCard);
+
       // Fetch new prices for the updated print
       await fetchPrices(updatedCard.id);
     } catch (error) {
@@ -255,7 +259,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                     <span className="text-gray-600">Regular:</span>
                     <p className="text-gray-900">
                       {prices.eur === "N/A"
-                        ? "−"
+                        ? "N/A"
                         : `€${Number(prices.eur).toFixed(2)}`}
                     </p>
                   </div>

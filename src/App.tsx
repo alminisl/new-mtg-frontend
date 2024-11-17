@@ -52,7 +52,7 @@ function App() {
   }, []);
 
   const handleSignIn = () => {
-    window.location.href = "http://localhost:3000";
+    window.location.href = "http://localhost:3000/login";
   };
 
   const handleSignOut = () => {
