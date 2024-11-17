@@ -174,7 +174,7 @@ const DeckList: React.FC = () => {
       id: collectionCard.card.id,
       name: collectionCard.card.name,
       imageUrl: collectionCard.card.imageUris?.normal ?? "N/A", // Updated line
-      set: collectionCard.card.set,
+      set: collectionCard.card.set_name,
       price: collectionCard.card.prices?.eur ?? "N/A", // Updated line
       oracleText: collectionCard.card.oracle_text,
       rulings_uri: collectionCard.card.rulings_uri,

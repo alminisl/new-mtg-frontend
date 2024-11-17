@@ -76,6 +76,10 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   }, []);
 
   useEffect(() => {
+    console.log(prints);
+  }, [prints]);
+
+  useEffect(() => {
     const fetchPrints = async () => {
       try {
         const response = await axios.get(
@@ -218,7 +222,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                   <div className="flex items-center gap-2">
                     {selectedPrint && (
                       <img
-                        src={selectedPrint.image_uris.small}
+                        src={selectedPrint?.image_uris.small || ""}
                         alt={selectedPrint.set_name}
                         className="w-8 h-8 object-contain"
                       />
@@ -237,7 +241,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                       >
                         <div className="flex items-center gap-2">
                           <img
-                            src={print.image_uris.small}
+                            src={print?.image_uris?.small}
                             alt={print.set_name}
                             className="w-8 h-8 object-contain"
                           />
