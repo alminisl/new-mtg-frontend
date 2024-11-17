@@ -6,6 +6,7 @@ import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 
 interface DeckboxProps {
+  decks: Deck[];
   onAddDeck: () => void;
   onSelectDeck: (deckId: string) => void;
   onOpenChange: (isOpen: boolean) => void;

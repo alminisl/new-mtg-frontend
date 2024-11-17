@@ -15,7 +15,6 @@ const DeckList: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
   const { setSelectedCollectionId } = useAppContext();
-  const navigate = useNavigate();
 
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
 
@@ -171,12 +170,12 @@ const DeckList: React.FC = () => {
     const data = response.data;
     console.log(data);
 
-    const newCards = data.cardsInCollections.map((collectionCard: any) => ({
+    const newCards = data.map((collectionCard: any) => ({
       id: collectionCard.card.id,
       name: collectionCard.card.name,
-      imageUrl: collectionCard.card.image_uris?.[0]?.png ?? "N/A", // Updated line
+      imageUrl: collectionCard.card.imageUris?.normal ?? "N/A", // Updated line
       set: collectionCard.card.set,
-      price: collectionCard.card.prices?.[0]?.eur ?? "N/A", // Updated line
+      price: collectionCard.card.prices?.eur ?? "N/A", // Updated line
       oracleText: collectionCard.card.oracle_text,
       rulings_uri: collectionCard.card.rulings_uri,
       count: collectionCard.count,
