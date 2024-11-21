@@ -156,7 +156,18 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
         throw new Error("Failed to update card print");
       }
 
-      const updatedCard = await response.json();
+      const updatedCardData = await response.json();
+
+      const updatedCard = {
+        id: updatedCardData.id,
+        name: updatedCardData.name,
+        imageUrl: updatedCardData.imageUris?.normal ?? "N/A",
+        set: updatedCardData.set_name,
+        price: updatedCardData.prices?.eur ?? "N/A",
+        oracleText: updatedCardData.oracle_text,
+        rulings_uri: updatedCardData.rulings_uri,
+        count: updatedCardData.count,
+      };
 
       // Update the card in the global state
       const finalUpdatedCards = cards.map((c) =>

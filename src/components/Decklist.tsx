@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 import CardGrid from "./CardGrid";
 import { Card, Deck } from "../types";
@@ -11,10 +12,9 @@ import { useAppContext } from "../context/AppContext";
 const DeckList: React.FC = () => {
   const { deckId } = useParams();
   const [collection, setCollection] = useState(null);
-  const [cards, setCards] = useState<Card[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
-  const { setSelectedCollectionId } = useAppContext();
+  const { setSelectedCollectionId, setCards, cards } = useAppContext();
 
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
 
@@ -136,8 +136,13 @@ const DeckList: React.FC = () => {
     setIsAddDeckModalOpen(true);
   };
 
+  useEffect(() => {
+    console.log("UPDATED CARDS");
+    console.log(cards);
+  }, [cards]);
+
   const handleRemoveCard = (cardId: string) => {
-    setCards((cards) => cards.filter((card) => card.id !== cardId));
+    setCards((cards: Cards[]) => cards.filter((card) => card.id !== cardId));
   };
 
   const handleSelectDeck = async (deckId: string) => {
@@ -181,6 +186,7 @@ const DeckList: React.FC = () => {
       count: collectionCard.count,
     }));
     setCards(newCards);
+    console.log(newCards);
     console.log(`Selected deck: ${deckId}`);
   };
 
@@ -216,7 +222,7 @@ const DeckList: React.FC = () => {
                   Magic: The Gathering Cards
                 </h1>
                 <div className="max-w-6xl mx-auto">
-                  <CardGrid cards={cards} onRemoveCard={handleRemoveCard} />
+                  <CardGrid onRemoveCard={handleRemoveCard} />
                 </div>
               </div>
             </div>

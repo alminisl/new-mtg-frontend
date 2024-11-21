@@ -1,3 +1,4 @@
+// src/components/Taskbar.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { Search, Plus } from "lucide-react";
 import axios from "axios";
@@ -9,7 +10,7 @@ const Taskbar: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const debounceTimer = useRef<number | null>(null);
 
-  const { selectedCollectionId } = useAppContext();
+  const { selectedCollectionId, setDecks, addCard } = useAppContext();
 
   useEffect(() => {
     if (query.length > 1) {
@@ -60,7 +61,36 @@ const Taskbar: React.FC = () => {
         },
       });
 
-      console.log("Card added to collection successfully:", response.data);
+      const collectionCard = response.data.card;
+      const addedCard = {
+        id: collectionCard.card.id,
+        name: collectionCard.card.name,
+        imageUrl: collectionCard.card.imageUris?.normal ?? "N/A",
+        set: collectionCard.card.set_name,
+        price: collectionCard.card.prices?.eur ?? "N/A",
+        oracleText: collectionCard.card.oracle_text,
+        rulings_uri: collectionCard.card.rulings_uri,
+        count: collectionCard.count,
+      };
+
+      console.log("Card added to collection successfully:", addedCard);
+
+      // Update the decks state
+      setDecks((prevDecks: any) => {
+        const updatedDecks = prevDecks.map((deck: any) => {
+          if (deck.id === selectedCollectionId) {
+            return {
+              ...deck,
+              cards: [...deck.cards, addedCard],
+            };
+          }
+          return deck;
+        });
+        return updatedDecks;
+      });
+
+      // Update the cards state in context
+      addCard(addedCard);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(

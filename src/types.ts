@@ -3,12 +3,12 @@ export interface Card {
   name: string;
   imageUrl: string;
   set: string;
-  price?: number;
+  price?: string; // Updated to string to match the provided data
   oracleText: string;
   rulings?: string[];
-  count?: number; // Add this line
-  rulings_uri?: string; // Add this line
-  manaCost?: string; // Add this line
+  count?: number;
+  rulings_uri?: string;
+  manaCost?: string;
 }
 
 export interface Deck {
