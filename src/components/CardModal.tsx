@@ -76,21 +76,12 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   }, []);
 
   useEffect(() => {
-    console.log(prints);
-  }, [prints]);
-
-  useEffect(() => {
     const fetchPrints = async () => {
       try {
         const response = await axios.get(
           `https://api.scryfall.com/cards/search?q=!"${card.name}" unique:prints`
         );
         setPrints(response.data.data);
-        setSelectedPrint(
-          response.data.data.find(
-            (print: CardPrint) => print.set_name === card.set
-          ) || response.data.data[0]
-        );
       } catch (error) {
         console.error("Error fetching card prints:", error);
       }
@@ -142,6 +133,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   };
 
   const handlePrintChange = async (print: CardPrint) => {
+    console.log(print);
     setSelectedPrint(print);
     setIsDropdownOpen(false);
 

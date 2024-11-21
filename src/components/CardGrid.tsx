@@ -69,13 +69,6 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
     console.groupEnd();
   }, [cards]);
 
-  // useEffect(() => {
-  //   cards.forEach((card) => {
-  //     console.log(card.price);
-  //     console.log("Card Image", card.imageUrl);
-  //   });
-  // }, [cards]);
-
   const renderManaSymbols = (manaCost: string) => {
     return manaCost
       .replace(/[{}]/g, "")
