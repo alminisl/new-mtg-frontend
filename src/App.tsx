@@ -66,7 +66,7 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-[#242424] text-white">
-        <div className="container mx-auto px-4">
+        <div className="mx-auto px-4">
           <Header
             isAuthenticated={isAuthenticated}
             username={username || ""}
@@ -78,7 +78,7 @@ function App() {
               path="/"
               element={
                 <main className="py-8">
-                  <ImageCarousel images={images} interval={3000} />
+                  {/* <ImageCarousel images={images} interval={3000} /> */}
                   <CardRow />
                 </main>
               }

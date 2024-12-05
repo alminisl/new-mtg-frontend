@@ -110,17 +110,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         }
       );
-      const fetchedCards = response.data.map((collectionCard: any) => ({
-        id: collectionCard.card.id,
-        name: collectionCard.card.name,
-        imageUrl: collectionCard.card.imageUris?.png ?? "N/A",
-        set: collectionCard.card.set,
-        price: collectionCard.card.prices?.eur ?? "N/A",
-        oracleText: collectionCard.card.oracle_text,
-        rulings_uri: collectionCard.card.rulings_uri,
-        count: collectionCard.count,
-        manaCost: collectionCard.card.mana_cost,
-      }));
+      const fetchedCards = response.data.cardsInCollections.map(
+        (collectionCard: any) => ({
+          id: collectionCard.card.id,
+          name: collectionCard.card.name,
+          imageUrl: collectionCard.card.image_uris?.[0]?.png ?? "N/A",
+          set: collectionCard.card.set,
+          price: collectionCard.card.prices?.[0]?.eur ?? "N/A",
+          oracleText: collectionCard.card.oracle_text,
+          rulings_uri: collectionCard.card.rulings_uri,
+          count: collectionCard.count,
+          manaCost: collectionCard.card.mana_cost,
+        })
+      );
       setCards(fetchedCards);
     } catch (error) {
       console.error("Error fetching cards for deck:", error);

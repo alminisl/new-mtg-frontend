@@ -4,7 +4,7 @@ import axios from "axios";
 interface AddDeckModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onDeckAdded: () => void;
+  onDeckAdded: (name: string) => void;
 }
 
 const AddDeckModal: React.FC<AddDeckModalProps> = ({
@@ -28,7 +28,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
         }
       );
       console.log("New deck added:", response.data);
-      onDeckAdded();
+      onDeckAdded(newDeckName);
       onClose();
     } catch (error) {
       console.error("Error adding new deck:", error);

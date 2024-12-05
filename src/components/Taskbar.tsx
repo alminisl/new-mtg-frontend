@@ -105,7 +105,7 @@ const Taskbar: React.FC = () => {
   };
 
   return (
-    <div className="sticky top-0 z-10 bg-gray-800 bg-opacity-90 backdrop-blur-sm shadow-md p-4 mb-4 rounded-lg">
+    <div className="sticky top-0 z-10 bg-gray-800 bg-opacity-90 backdrop-blur-sm shadow-md p-4 mb-4 rounded-lg w-full">
       <div className="flex items-center space-x-4">
         <div className="relative flex-grow">
           <input

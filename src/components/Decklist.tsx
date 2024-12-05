@@ -1,22 +1,19 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
-import CardGrid from "./CardGrid";
-import { Card, Deck } from "../types";
-import Deckbox from "./Deckbox";
-import axios from "axios";
-import AddDeckModal from "./AddDeckModal";
+import CardGrid from "../components/CardGrid";
+import Taskbar from "../components/Taskbar";
 import { useAppContext } from "../context/AppContext";
+import { Card, Deck } from "../types";
+import AddDeckModal from "../components/AddDeckModal";
+import axios from "axios";
 
-const DeckList: React.FC = () => {
+const DeckList = () => {
   const { deckId } = useParams();
-  const [collection, setCollection] = useState(null);
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [isDeckboxOpen, setIsDeckboxOpen] = useState(false);
-  const { setSelectedCollectionId, setCards, cards } = useAppContext();
-
+  const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+  const { setSelectedCollectionId, setCards, cards } = useAppContext();
 
   useEffect(() => {
     if (deckId) {
@@ -25,65 +22,38 @@ const DeckList: React.FC = () => {
   }, [deckId]);
 
   useEffect(() => {
-    const fetchCards = async () => {
-      const userId = localStorage.getItem("id");
-      if (!userId) {
-        console.error("User ID not found in cookies.");
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/collections/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-
-        const data = response.data;
-        const decks = data.map((deck: any) => ({
-          id: deck.id,
-          name: deck.name,
-          price: deck.price,
-          image: deck.image,
-        }));
-        setDecks(decks);
-      } catch (error) {
-        console.error("Error fetching card collection:", error);
-      }
-      // try {
-      //   const response = await axios.get(
-      //     `http://localhost:3000//collections/${userId}`,
-      //     {
-      //       headers: {
-      //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //       },
-      //     }
-      //   );
-      //   const data = response.data;
-
-      //   const newCards = data.cards.map((card: any) => ({
-      //     id: card.id,
-      //     name: card.name,
-      //     imageUrl: card.imageUrl,
-      //     set: card.set,
-      //     price: card.price,
-      //     oracleText: card.oracleId,
-      //     rulings: card.rulings,
-      //     count: card.count,
-      //   }));
-      //   setCards(newCards);
-      //   // Update deck here
-      //   // setDecks(updatedDecks);
-      // } catch (error) {
-      //   console.error("Error fetching card collection:", error);
-      // }
-    };
-
-    fetchCards();
+    fetchDecks();
   }, []);
+
+  const fetchDecks = async () => {
+    const userId = localStorage.getItem("id");
+    if (!userId) {
+      console.error("User ID not found in cookies.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/collections/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      const data = response.data;
+      const decks = data.map((deck: any) => ({
+        id: deck.id,
+        name: deck.name,
+        price: deck.price,
+        image: deck.image,
+      }));
+      setDecks(decks);
+    } catch (error) {
+      console.error("Error fetching card collection:", error);
+    }
+  };
 
   const handleDeckAdded = () => {
     const newDeck: Deck = {
@@ -94,148 +64,156 @@ const DeckList: React.FC = () => {
     setDecks([...decks, newDeck]);
   };
 
-  // const fetchRulings = async (rulingsUri: string) => {
-  //   try {
-  //     const response = await axios.get(rulingsUri);
-  //     const data = response.data;
-  //     return data.data.map((ruling: any) => ruling.comment);
-  //   } catch (error) {
-  //     console.error("Error fetching rulings:", error);
-  //     return [];
-  //   }
-  // };
+  const handleSelectDeck = async (deckId: string) => {
+    // Toggle selection if clicking the same deck
+    if (selectedDeckId === deckId) {
+      setSelectedDeckId(null);
+      setSelectedCollectionId(null);
+      setCards([]);
+      return;
+    }
 
-  useEffect(() => {
-    const fetchCollection = async () => {
-      const userId = localStorage.getItem("id");
-      if (!userId) {
-        console.error("User ID not found in cookies.");
-        return;
-      }
+    setSelectedDeckId(deckId);
+    setSelectedCollectionId(deckId);
 
-      try {
-        const response = await axios.get(
-          `http://localhost:3000/collections/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        const data = response.data;
-        setCollection(data);
-      } catch (error) {
-        console.error("Error fetching collection:", error);
-      }
-    };
+    const userId = localStorage.getItem("id");
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/cardsInCollection/${userId}/${deckId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    fetchCollection();
-  }, []);
-
-  const handleAddDeckClick = () => {
-    setIsAddDeckModalOpen(true);
+      const data = response.data;
+      const newCards = data.map((collectionCard: any) => ({
+        id: collectionCard.card.id,
+        name: collectionCard.card.name,
+        imageUrl: collectionCard.card.imageUris?.normal ?? "N/A",
+        set: collectionCard.card.set_name,
+        price: collectionCard.card.prices?.eur ?? "N/A",
+        oracleText: collectionCard.card.oracle_text,
+        rulings_uri: collectionCard.card.rulings_uri,
+        count: collectionCard.count,
+      }));
+      setCards(newCards);
+    } catch (error) {
+      console.error("Error fetching deck cards:", error);
+    }
   };
-
-  useEffect(() => {
-    console.log("UPDATED CARDS");
-    console.log(cards);
-  }, [cards]);
 
   const handleRemoveCard = (cardId: string) => {
-    setCards((cards: Cards[]) => cards.filter((card) => card.id !== cardId));
-  };
-
-  const handleSelectDeck = async (deckId: string) => {
-    setSelectedCollectionId(deckId);
-    // Here you would typically fetch cards for the selected deck
-    // For now, we'll just log the selected deck ID
-    const userId = localStorage.getItem("id");
-    const response = await axios.get(
-      `http://localhost:3000/cardsInCollection/${userId}/${deckId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
+    setCards((prevCards: Card[]) =>
+      prevCards.filter((card) => card.id !== cardId)
     );
-
-    // const updateCardList = async () => {
-    //   const userId = localStorage.getItem("id");
-    //   const response = await axios.get(
-    //     `http://localhost:3000//collections/${userId}`,
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-    //       },
-    //     }
-    //   );
-    //   setCards(response.data.cards);
-    // };
-
-    const data = response.data;
-    console.log(data);
-
-    const newCards = data.map((collectionCard: any) => ({
-      id: collectionCard.card.id,
-      name: collectionCard.card.name,
-      imageUrl: collectionCard.card.imageUris?.normal ?? "N/A", // Updated line
-      set: collectionCard.card.set_name,
-      price: collectionCard.card.prices?.eur ?? "N/A", // Updated line
-      oracleText: collectionCard.card.oracle_text,
-      rulings_uri: collectionCard.card.rulings_uri,
-      count: collectionCard.count,
-    }));
-    setCards(newCards);
-    console.log(newCards);
-    console.log(`Selected deck: ${deckId}`);
   };
+
+  const handleDeleteDeck = async (deckId: string) => {
+    if (!confirm("Are you sure you want to delete this deck?")) return;
+
+    const userId = localStorage.getItem("id");
+    try {
+      await axios.delete(
+        `http://localhost:3000/collections/${userId}/${deckId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setDecks(decks.filter((deck) => deck.id !== deckId));
+      if (selectedDeckId === deckId) {
+        setSelectedDeckId(null);
+        setSelectedCollectionId(null);
+        setCards([]);
+      }
+    } catch (error) {
+      console.error("Error deleting deck:", error);
+    }
+  };
+
+  const activeDeck = decks.find((deck) => deck.id === selectedDeckId);
 
   return (
-    <div className="py-8">
-      <div className="mb-6">
+    <div className="py-8 container mx-auto flex flex-col items-center">
+      <div className="w-full">
+        <Taskbar />
+      </div>
+      <div className="mb-6 w-full flex justify-between items-center">
         <Link
           to="/"
-          className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+          className="flex items-center text-[#22262a] hover:text-[#3a4147] transition-colors"
         >
           <ChevronLeft className="w-5 h-5 mr-1" />
           <span>Back to Home</span>
         </Link>
+        <button
+          onClick={() => setIsAddDeckModalOpen(true)}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+        >
+          New Deck
+        </button>
       </div>
-      <h1 className="text-2xl font-bold mb-4">I'm the DeckList</h1>
-      {collection ? (
-        <div>
-          {/* <pre>{JSON.stringify(collection, null, 2)}</pre> */}
-          <div className="min-h-screen ">
-            <Deckbox
-              decks={decks}
-              onAddDeck={handleAddDeckClick}
-              onSelectDeck={handleSelectDeck}
-              onOpenChange={setIsDeckboxOpen}
-            />
-            <div
-              className={`transition-all duration-300 ${
-                isDeckboxOpen ? "ml-64" : "ml-8"
+
+      <div className="w-full flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-3">My Decks</h1>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 w-full">
+          {decks.map((deck) => (
+            <button
+              key={deck.id}
+              onClick={() => handleSelectDeck(deck.id)}
+              className={`p-4 rounded-lg text-left transition-colors ${
+                deck.id === selectedDeckId
+                  ? "bg-[#22262a] text-white"
+                  : "bg-[#43474a] hover:bg-[#22262a]"
               }`}
             >
-              <div className="p-4">
-                <h1 className="text-3xl font-bold text-center mb-8">
-                  Magic: The Gathering Cards
-                </h1>
-                <div className="max-w-6xl mx-auto">
-                  <CardGrid onRemoveCard={handleRemoveCard} />
-                </div>
-              </div>
+              <h3 className="font-bold">{deck.name}</h3>
+              <p className="text-sm opacity-80">{cards.length} cards</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {activeDeck ? (
+        <div className="w-full flex flex-col items-center">
+          <div className="flex justify-between items-center mb-4 w-full">
+            <div>
+              <h2 className="text-2xl font-bold">{activeDeck.name}</h2>
+              {activeDeck.price && (
+                <p className="text-gray-600">
+                  Estimated value: ${parseFloat(activeDeck.price).toFixed(2)}
+                </p>
+              )}
             </div>
+            <button
+              onClick={() => handleDeleteDeck(activeDeck.id)}
+              className="px-4 py-2 text-red-600 hover:text-red-800 transition-colors"
+            >
+              Delete Deck
+            </button>
           </div>
+
+          <CardGrid cards={cards} onCardClick={handleRemoveCard} />
         </div>
       ) : (
-        <p>Loading...</p>
+        <div className="text-center py-12 bg-gray-800 rounded-lg w-full">
+          <p className="text-gray-300">
+            {decks.length === 0
+              ? "You haven't created any collections yet. Create your first collection to get started!"
+              : "Select a collection to view its cards"}
+          </p>
+        </div>
       )}
-      <AddDeckModal
-        isOpen={isAddDeckModalOpen}
-        onClose={() => setIsAddDeckModalOpen(false)}
-        onDeckAdded={handleDeckAdded}
-      />
+
+      {isAddDeckModalOpen && (
+        <AddDeckModal
+          onClose={() => setIsAddDeckModalOpen(false)}
+          onDeckAdded={handleDeckAdded}
+        />
+      )}
     </div>
   );
 };
