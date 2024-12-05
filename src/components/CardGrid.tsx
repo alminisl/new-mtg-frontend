@@ -6,18 +6,23 @@ import { Grid, List, X } from "lucide-react";
 import ManaSymbol from "./ManaSymbol";
 import { deleteCard } from "../service/service";
 import { useAppContext } from "../context/AppContext";
+import cardBack from "../assets/cardback.jpeg";
 
 interface CardGridProps {
-  cards: Card[];
   onRemoveCard?: (cardId: string) => void;
 }
 
-const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
+const CardGrid: React.FC<CardGridProps> = ({ onRemoveCard }) => {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [isListView, setIsListView] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<Card | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
-  const { selectedCollectionId } = useAppContext();
+  const { selectedCollectionId, cards } = useAppContext();
+  const [cardsLength, setCardsLength] = useState(cards.length);
+
+  useEffect(() => {
+    setCardsLength(cards.length);
+  }, [cards]);
 
   const handleCardClick = (card: Card) => {
     setSelectedCard(card);
@@ -59,10 +64,13 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
   };
 
   useEffect(() => {
+    console.group("Card Images in Grid", cards);
     cards.forEach((card) => {
-      console.log(card.price);
-      console.log("Card Image", card.imageUrl);
+      console.log("Card Name:", card.name);
+      console.log("Image URL:", card.imageUrl);
+      console.log("Raw Card Data:", card);
     });
+    console.groupEnd();
   }, [cards]);
 
   const renderManaSymbols = (manaCost: string) => {
@@ -77,6 +85,11 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
       <Taskbar />
       <>
         <div className="mb-4 flex justify-end">
+          {cardsLength > 0 && (
+            <span className="text-gray-600 text-sm mr-2">
+              {cardsLength} card{cardsLength > 1 ? "s" : ""}
+            </span>
+          )}
           <button
             onClick={toggleView}
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex items-center"
@@ -132,7 +145,7 @@ const CardGrid: React.FC<CardGridProps> = ({ cards, onRemoveCard }) => {
               >
                 <div className="w-4/5 relative">
                   <img
-                    src={card.imageUrl}
+                    src={card.imageUrl === "N/A" ? cardBack : card.imageUrl}
                     alt={card.name}
                     className="w-full h-auto rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
                   />

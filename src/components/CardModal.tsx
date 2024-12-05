@@ -26,7 +26,8 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   const [prints, setPrints] = useState<CardPrint[]>([]);
   const [selectedPrint, setSelectedPrint] = useState<CardPrint | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { cards, setCards, selectedCollectionId } = useAppContext();
+  const { cards, setCards, selectedCollectionId, updateCardInCollection } =
+    useAppContext();
   const [prices, setPrices] = useState<CardPrices>({
     eur: "N/A",
     eur_foil: "N/A",
@@ -81,11 +82,6 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
           `https://api.scryfall.com/cards/search?q=!"${card.name}" unique:prints`
         );
         setPrints(response.data.data);
-        setSelectedPrint(
-          response.data.data.find(
-            (print: CardPrint) => print.set_name === card.set
-          ) || response.data.data[0]
-        );
       } catch (error) {
         console.error("Error fetching card prints:", error);
       }
@@ -137,6 +133,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
   };
 
   const handlePrintChange = async (print: CardPrint) => {
+    console.log(print);
     setSelectedPrint(print);
     setIsDropdownOpen(false);
 
@@ -159,13 +156,27 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
         throw new Error("Failed to update card print");
       }
 
-      const updatedCard = await response.json();
+      const updatedCardData = await response.json();
+
+      const updatedCard = {
+        id: updatedCardData.id,
+        name: updatedCardData.name,
+        imageUrl: updatedCardData.imageUris?.normal ?? "N/A",
+        set: updatedCardData.set_name,
+        price: updatedCardData.prices?.eur ?? "N/A",
+        oracleText: updatedCardData.oracle_text,
+        rulings_uri: updatedCardData.rulings_uri,
+        count: updatedCardData.count,
+      };
 
       // Update the card in the global state
       const finalUpdatedCards = cards.map((c) =>
         c.id === card.id ? updatedCard : c
       );
       setCards(finalUpdatedCards);
+
+      // Use the context function to update cards everywhere
+      await updateCardInCollection(card.id, updatedCard);
 
       // Fetch new prices for the updated print
       await fetchPrices(updatedCard.id);
@@ -214,7 +225,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                   <div className="flex items-center gap-2">
                     {selectedPrint && (
                       <img
-                        src={selectedPrint.image_uris.small}
+                        src={selectedPrint?.image_uris.small || ""}
                         alt={selectedPrint.set_name}
                         className="w-8 h-8 object-contain"
                       />
@@ -233,7 +244,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                       >
                         <div className="flex items-center gap-2">
                           <img
-                            src={print.image_uris.small}
+                            src={print?.image_uris?.small}
                             alt={print.set_name}
                             className="w-8 h-8 object-contain"
                           />
@@ -255,7 +266,7 @@ const CardModal: React.FC<CardModalProps> = ({ card, onClose }) => {
                     <span className="text-gray-600">Regular:</span>
                     <p className="text-gray-900">
                       {prices.eur === "N/A"
-                        ? "−"
+                        ? "N/A"
                         : `€${Number(prices.eur).toFixed(2)}`}
                     </p>
                   </div>

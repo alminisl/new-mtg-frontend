@@ -1,3 +1,4 @@
+// src/context/AppContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Card, Deck } from "../types";
 import axios from "axios";
@@ -26,6 +27,7 @@ interface AppState {
   fetchCardsForDeck: (deckId: string) => Promise<void>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   setToken: (token: string) => void;
+  updateCardInCollection: (cardId: string, count: number) => Promise<void>;
 }
 
 const AppContext = createContext<AppState | undefined>(undefined);
@@ -82,6 +84,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         }
       );
+
       const fetchedDecks = response.data.map((deck: any) => ({
         id: deck.id,
         name: deck.name,
@@ -89,6 +92,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         image: deck.image,
         cards: [],
       }));
+
       setDecks(fetchedDecks);
     } catch (error) {
       console.error("Error fetching decks:", error);
@@ -106,19 +110,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         }
       );
-      const fetchedCards = response.data.cardsInCollections.map(
-        (collectionCard: any) => ({
-          id: collectionCard.card.id,
-          name: collectionCard.card.name,
-          imageUrl: collectionCard.card.image_uris?.[0]?.png ?? "N/A",
-          set: collectionCard.card.set,
-          price: collectionCard.card.prices?.[0]?.eur ?? "N/A",
-          oracleText: collectionCard.card.oracle_text,
-          rulings_uri: collectionCard.card.rulings_uri,
-          count: collectionCard.count,
-          manaCost: collectionCard.card.mana_cost,
-        })
-      );
+      const fetchedCards = response.data.map((collectionCard: any) => ({
+        id: collectionCard.card.id,
+        name: collectionCard.card.name,
+        imageUrl: collectionCard.card.imageUris?.png ?? "N/A",
+        set: collectionCard.card.set,
+        price: collectionCard.card.prices?.eur ?? "N/A",
+        oracleText: collectionCard.card.oracle_text,
+        rulings_uri: collectionCard.card.rulings_uri,
+        count: collectionCard.count,
+        manaCost: collectionCard.card.mana_cost,
+      }));
       setCards(fetchedCards);
     } catch (error) {
       console.error("Error fetching cards for deck:", error);
@@ -149,6 +151,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  const updateCardInCollection = async (cardId: string, count: number) => {
+    setCards((prevCards) =>
+      prevCards.map((card) =>
+        card.id === cardId ? { ...card, count: count } : card
+      )
+    );
+    await fetchCardsForDeck(selectedCollectionId!);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -175,6 +186,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsAuthenticated,
         setToken,
         token,
+        updateCardInCollection,
       }}
     >
       {children}
