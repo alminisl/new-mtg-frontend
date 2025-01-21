@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
-import CardGrid from "../components/CardGrid";
-import Taskbar from "../components/Taskbar";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ChevronLeft, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { Card, Deck } from "../types";
 import AddDeckModal from "../components/AddDeckModal";
 import axios from "axios";
 
 const DeckList = () => {
+  const navigate = useNavigate();
   const { deckId } = useParams();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
   const { setSelectedCollectionId, setCards, cards } = useAppContext();
 
   useEffect(() => {
@@ -60,12 +61,15 @@ const DeckList = () => {
       id: (decks.length + 1).toString(),
       name: `New Deck ${decks.length + 1}`,
       cards: [],
+      format: "None",
+      keywords: [],
+      timesImported: 0,
+      createdBy: DUMMY_USER_ID,
     };
     setDecks([...decks, newDeck]);
   };
 
   const handleSelectDeck = async (deckId: string) => {
-    // Toggle selection if clicking the same deck
     if (selectedDeckId === deckId) {
       setSelectedDeckId(null);
       setSelectedCollectionId(null);
@@ -76,32 +80,8 @@ const DeckList = () => {
     setSelectedDeckId(deckId);
     setSelectedCollectionId(deckId);
 
-    const userId = localStorage.getItem("id");
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/cardsInCollection/${userId}/${deckId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const data = response.data;
-      const newCards = data.map((collectionCard: any) => ({
-        id: collectionCard.card.id,
-        name: collectionCard.card.name,
-        imageUrl: collectionCard.card.imageUris?.normal ?? "N/A",
-        set: collectionCard.card.set_name,
-        price: collectionCard.card.prices?.eur ?? "N/A",
-        oracleText: collectionCard.card.oracle_text,
-        rulings_uri: collectionCard.card.rulings_uri,
-        count: collectionCard.count,
-      }));
-      setCards(newCards);
-    } catch (error) {
-      console.error("Error fetching deck cards:", error);
-    }
+    // Simulate API call with dummy cards
+    setCards();
   };
 
   const handleRemoveCard = (cardId: string) => {
@@ -112,108 +92,109 @@ const DeckList = () => {
 
   const handleDeleteDeck = async (deckId: string) => {
     if (!confirm("Are you sure you want to delete this deck?")) return;
-
-    const userId = localStorage.getItem("id");
-    try {
-      await axios.delete(
-        `http://localhost:3000/collections/${userId}/${deckId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setDecks(decks.filter((deck) => deck.id !== deckId));
-      if (selectedDeckId === deckId) {
-        setSelectedDeckId(null);
-        setSelectedCollectionId(null);
-        setCards([]);
-      }
-    } catch (error) {
-      console.error("Error deleting deck:", error);
+    setDecks(decks.filter((deck) => deck.id !== deckId));
+    if (selectedDeckId === deckId) {
+      setSelectedDeckId(null);
+      setSelectedCollectionId(null);
+      setCards([]);
     }
   };
 
-  const activeDeck = decks.find((deck) => deck.id === selectedDeckId);
+  const handleDeckClick = (deckId: string) => {
+    handleSelectDeck(deckId);
+    navigate(`/deck/${deckId}`);
+  };
+
+  const filteredDecks = decks.filter((deck) =>
+    deck.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="py-8 container mx-auto flex flex-col items-center">
-      <div className="w-full">
-        <Taskbar />
-      </div>
-      <div className="mb-6 w-full flex justify-between items-center">
-        <Link
-          to="/"
-          className="flex items-center text-[#22262a] hover:text-[#3a4147] transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5 mr-1" />
-          <span>Back to Home</span>
-        </Link>
-        <button
-          onClick={() => setIsAddDeckModalOpen(true)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
-        >
-          New Deck
-        </button>
-      </div>
-
-      <div className="w-full flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-3">My Decks</h1>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 w-full">
-          {decks.map((deck) => (
-            <button
-              key={deck.id}
-              onClick={() => handleSelectDeck(deck.id)}
-              className={`p-4 rounded-lg text-left transition-colors ${
-                deck.id === selectedDeckId
-                  ? "bg-[#22262a] text-white"
-                  : "bg-[#43474a] hover:bg-[#22262a]"
-              }`}
-            >
-              <h3 className="font-bold">{deck.name}</h3>
-              <p className="text-sm opacity-80">{cards.length} cards</p>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {activeDeck ? (
-        <div className="w-full flex flex-col items-center">
-          <div className="flex justify-between items-center mb-4 w-full">
-            <div>
-              <h2 className="text-2xl font-bold">{activeDeck.name}</h2>
-              {activeDeck.price && (
-                <p className="text-gray-600">
-                  Estimated value: ${parseFloat(activeDeck.price).toFixed(2)}
-                </p>
-              )}
+    <div className="min-h-screen bg-[#1c1f23] text-gray-200">
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col space-y-4">
+          {/* Search and Filters Section */}
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center space-x-4">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  placeholder="Search decks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#2a2e33] border border-[#3a4147] rounded-md py-2 px-4 pr-10 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              </div>
+              <button
+                onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                className="flex items-center space-x-2 text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Filters</span>
+              </button>
             </div>
-            <button
-              onClick={() => handleDeleteDeck(activeDeck.id)}
-              className="px-4 py-2 text-red-600 hover:text-red-800 transition-colors"
-            >
-              Delete Deck
-            </button>
           </div>
 
-          <CardGrid cards={cards} onCardClick={handleRemoveCard} />
-        </div>
-      ) : (
-        <div className="text-center py-12 bg-gray-800 rounded-lg w-full">
-          <p className="text-gray-300">
-            {decks.length === 0
-              ? "You haven't created any collections yet. Create your first collection to get started!"
-              : "Select a collection to view its cards"}
-          </p>
-        </div>
-      )}
+          {/* Results Count */}
+          <div className="text-gray-400">Results: {filteredDecks.length}</div>
 
-      {isAddDeckModalOpen && (
-        <AddDeckModal
-          onClose={() => setIsAddDeckModalOpen(false)}
-          onDeckAdded={handleDeckAdded}
-        />
-      )}
+          {/* Decks Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDecks.map((deck) => (
+              <div
+                key={deck.id}
+                onClick={() => handleDeckClick(deck.id)}
+                className="bg-[#2a2e33] rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer"
+              >
+                <div className="relative h-48">
+                  {deck.image ? (
+                    <img
+                      src={deck.image}
+                      alt={deck.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#3a4147] to-[#22262a]" />
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <h3 className="text-xl font-bold text-white">
+                      {deck.name}
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-4 space-y-2">
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>Format:</span>
+                    <span>{deck.format}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-400">
+                    <span>Created By:</span>
+                    <span>{deck.createdBy}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Floating Add Button */}
+        <button
+          onClick={() => setIsAddDeckModalOpen(true)}
+          className="fixed right-6 bottom-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-colors"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+
+        {/* Add Deck Modal */}
+        {isAddDeckModalOpen && (
+          <AddDeckModal
+            isOpen={isAddDeckModalOpen}
+            onClose={() => setIsAddDeckModalOpen(false)}
+            onDeckAdded={handleDeckAdded}
+          />
+        )}
+      </div>
     </div>
   );
 };

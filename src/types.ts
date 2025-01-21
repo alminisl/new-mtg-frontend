@@ -17,4 +17,9 @@ export interface Deck {
   id: string;
   name: string;
   cards: Card[];
+  image?: string;
+  format?: string;
+  keywords?: string[];
+  timesImported?: number;
+  createdBy?: string;
 }

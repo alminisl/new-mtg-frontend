@@ -6,6 +6,7 @@ import CardRow from "./components/CardRow";
 import DeckList from "./components/Decklist";
 import PrivateRoute from "./components/PrivateRoute";
 import { useAppContext } from "./context/AppContext";
+import CardGrid from "./components/CardGrid";
 
 const images = [
   "https://images.ctfassets.net/s5n2t79q9icq/2Jcnqi6tnVO40eKc8XvFtT/b2d7caccf928290b96106117a1cb00bd/1200x630_Meta_EN.jpg",
@@ -91,7 +92,7 @@ function App() {
                 </PrivateRoute>
               }
             />
-            <Route path="/decklist/:deckId" element={<DeckList />} />
+            <Route path="/decklist/:deckId" element={<CardGrid />} />
           </Routes>
         </div>
       </div>

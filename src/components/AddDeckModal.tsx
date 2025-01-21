@@ -38,31 +38,40 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-2xl font-bold mb-4">Add New Deck</h2>
-        <form onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={newDeckName}
-            onChange={(e) => setNewDeckName(e.target.value)}
-            placeholder="Enter deck name"
-            className="w-full p-2 border border-gray-300 rounded mb-4 text-gray-900"
-            required
-          />
-          <div className="flex justify-end">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#2a2e33] rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-bold text-white mb-4">Add New Deck</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-300 mb-1"
+            >
+              Deck Name
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={newDeckName}
+              onChange={(e) => setNewDeckName(e.target.value)}
+              placeholder="Enter deck name"
+              className="w-full bg-[#1c1f23] border border-[#3a4147] rounded-md py-2 px-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            />
+          </div>
+          <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="mr-2 px-4 py-2 text-gray-600 hover:text-gray-800"
+              className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
             >
-              Add Deck
+              Create Deck
             </button>
           </div>
         </form>
